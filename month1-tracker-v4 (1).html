@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AI Security Journey — Month 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070710;
+  --surface: #0e0e1a;
+  --card: #13131f;
+  --border: #1c1c2e;
+  --border2: #252538;
+  --green: #00e87a;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --orange: #f97316;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --text: #f0f0ff;
+  --muted: #4a4a6a;
+  --muted2: #6a6a8a;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  background:var(--bg); color:var(--text); font-family:'Syne',sans-serif;
+  min-height:100vh; padding:0 0 80px;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 20% 0%,rgba(0,232,122,.06) 0%,transparent 50%),
+    radial-gradient(ellipse 40% 30% at 80% 100%,rgba(168,85,247,.05) 0%,transparent 50%);
+}
+.sticky-header {
+  position:sticky; top:0; z-index:100;
+  background:rgba(7,7,16,.92); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:12px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.sticky-title { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:2px; color:var(--green); text-transform:uppercase; white-space:nowrap; }
+.header-bars { display:flex; gap:10px; flex:1; max-width:300px; }
+.mini-bar { flex:1; }
+.mini-bar-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted2); margin-bottom:4px; }
+.mini-bar-track { height:3px; background:var(--border2); border-radius:2px; overflow:hidden; }
+.mini-bar-fill { height:100%; border-radius:2px; width:0%; transition:width .4s ease; }
+.fill-green { background:var(--green); }
+.fill-purple { background:var(--purple); }
+.header-count { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted2); white-space:nowrap; }
+.header-count span { color:var(--green); }
+.hero { padding:48px 20px 32px; text-align:center; position:relative; }
+.hero::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:1px; height:40px; background:linear-gradient(to bottom,var(--green),transparent); }
+.hero-eyebrow { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:4px; color:var(--green); text-transform:uppercase; margin-bottom:16px; opacity:.8; }
+.hero-title { font-size:clamp(52px,12vw,96px); font-weight:800; line-height:.88; letter-spacing:-2px; }
+.hero-title em { font-style:normal; color:var(--green); display:block; }
+.hero-sub { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); letter-spacing:3px; margin-top:18px; text-transform:uppercase; }
+.legend { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; padding:28px 20px 0; }
+.legend-chip { display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px; color:var(--muted2); background:var(--card); border:1px solid var(--border); padding:5px 10px; border-radius:2px; }
+.chip-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.overall-progress { margin:28px 16px 0; background:var(--card); border:1px solid var(--border); border-radius:4px; padding:20px; }
+.op-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.op-title { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:3px; color:var(--muted2); text-transform:uppercase; }
+.op-pct { font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--green); }
+.op-tracks { display:flex; flex-direction:column; gap:10px; }
+.op-track-row { display:flex; align-items:center; gap:10px; }
+.op-track-label { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); width:52px; flex-shrink:0; text-transform:uppercase; letter-spacing:1px; }
+.op-track-bar { flex:1; height:4px; background:var(--border2); border-radius:2px; overflow:hidden; }
+.op-track-fill { height:100%; border-radius:2px; width:0%; transition:width .5s ease; }
+.op-track-num { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); width:36px; text-align:right; flex-shrink:0; }
+.week-nav { display:flex; margin:28px 16px 0; border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+.week-tab { flex:1; padding:10px 4px; text-align:center; cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px; color:var(--muted); background:var(--card); border-right:1px solid var(--border); transition:all .2s; user-select:none; }
+.week-tab:last-child { border-right:none; }
+.week-tab.w1.active { background:rgba(0,232,122,.08); color:var(--green); }
+.week-tab.w2.active { background:rgba(59,130,246,.08); color:var(--blue); }
+.week-tab.w3.active { background:rgba(249,115,22,.08); color:var(--orange); }
+.week-tab.w4.active { background:rgba(168,85,247,.08); color:var(--purple); }
+.tab-num { display:block; font-size:14px; font-weight:700; font-family:'Syne',sans-serif; }
+.tab-progress { display:block; font-size:8px; margin-top:2px; opacity:.6; }
+.week-panel { display:none; padding:16px; }
+.week-panel.active { display:block; }
+.week-hero { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:18px 20px; margin-bottom:16px; position:relative; overflow:hidden; }
+.week-hero::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; }
+.w1 .week-hero::before { background:var(--green); }
+.w2 .week-hero::before { background:var(--blue); }
+.w3 .week-hero::before { background:var(--orange); }
+.w4 .week-hero::before { background:var(--purple); }
+.week-hero-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:3px; color:var(--muted2); text-transform:uppercase; margin-bottom:6px; }
+.week-hero-title { font-size:22px; font-weight:800; margin-bottom:4px; }
+.week-hero-goal { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted2); }
+.week-hero-stats { display:flex; gap:16px; margin-top:14px; }
+.wh-stat { font-family:'JetBrains Mono',monospace; font-size:10px; display:flex; align-items:center; gap:6px; }
+.wh-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.day-card { background:var(--card); border:1px solid var(--border); border-radius:4px; margin-bottom:10px; overflow:hidden; }
+.day-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; cursor:pointer; user-select:none; transition:background .2s; }
+.day-header:hover { background:rgba(255,255,255,.02); }
+.day-header.open { border-bottom:1px solid var(--border); }
+.day-left { display:flex; align-items:center; gap:10px; }
+.day-badge { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; padding:3px 8px; border-radius:2px; text-transform:uppercase; flex-shrink:0; }
+.badge-mon { background:rgba(0,232,122,.1); color:var(--green); border:1px solid rgba(0,232,122,.2); }
+.badge-tue { background:rgba(59,130,246,.1); color:var(--blue); border:1px solid rgba(59,130,246,.2); }
+.badge-wed { background:rgba(234,179,8,.1); color:var(--yellow); border:1px solid rgba(234,179,8,.2); }
+.badge-thu { background:rgba(249,115,22,.1); color:var(--orange); border:1px solid rgba(249,115,22,.2); }
+.badge-fri { background:rgba(168,85,247,.1); color:var(--purple); border:1px solid rgba(168,85,247,.2); }
+.badge-wknd { background:rgba(239,68,68,.1); color:var(--red); border:1px solid rgba(239,68,68,.2); }
+.day-name { font-size:13px; font-weight:700; }
+.day-count { display:flex; align-items:center; gap:6px; }
+.day-done-pips { display:flex; gap:3px; }
+.pip { width:6px; height:6px; border-radius:50%; background:var(--border2); transition:background .2s; }
+.pip.filled { background:var(--green); }
+.day-chevron { font-size:10px; color:var(--muted); transition:transform .2s; margin-left:4px; }
+.day-header.open .day-chevron { transform:rotate(90deg); }
+.day-body { display:none; padding:8px 0; }
+.day-body.open { display:block; }
+.task { display:flex; align-items:flex-start; gap:12px; padding:10px 16px; cursor:pointer; transition:background .15s; }
+.task:hover { background:rgba(255,255,255,.02); }
+.task-cb { width:18px; height:18px; border:1.5px solid var(--muted); border-radius:2px; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.task.done .task-cb { border-color:var(--green); background:rgba(0,232,122,.12); }
+.task.udemy-task.done .task-cb { border-color:var(--purple); background:rgba(168,85,247,.12); }
+.checkmark { display:none; font-size:10px; color:var(--green); font-weight:700; }
+.task.udemy-task.done .checkmark { color:var(--purple); }
+.task.done .checkmark { display:block; }
+.task-content { flex:1; min-width:0; }
+.task-text { font-size:13px; color:var(--text); line-height:1.5; transition:color .2s; }
+.task.done .task-text { color:var(--muted); text-decoration:line-through; text-decoration-color:var(--border2); }
+.task-note { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted2); margin-top:3px; line-height:1.4; }
+.task-code { font-family:'JetBrains Mono',monospace; font-size:10px; background:var(--bg); border:1px solid var(--border2); border-radius:3px; padding:8px 10px; margin-top:6px; color:var(--green); white-space:pre; overflow-x:auto; line-height:1.6; }
+.task-code .comment { color:var(--muted2); }
+.task-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+.tag { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; padding:2px 6px; border-radius:2px; text-transform:uppercase; }
+.tag-build { background:rgba(0,232,122,.1); color:var(--green); border:1px solid rgba(0,232,122,.15); }
+.tag-learn { background:rgba(59,130,246,.1); color:var(--blue); border:1px solid rgba(59,130,246,.15); }
+.tag-ship  { background:rgba(234,179,8,.1); color:var(--yellow); border:1px solid rgba(234,179,8,.15); }
+.tag-show  { background:rgba(239,68,68,.1); color:var(--red); border:1px solid rgba(239,68,68,.15); }
+.tag-udemy { background:rgba(168,85,247,.1); color:var(--purple); border:1px solid rgba(168,85,247,.15); }
+.tag-cmd   { background:rgba(234,179,8,.08); color:var(--yellow); border:1px solid rgba(234,179,8,.12); }
+.section-divider { display:flex; align-items:center; gap:10px; padding:14px 16px 6px; }
+.section-divider-line { flex:1; height:1px; background:var(--border); }
+.section-divider-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted2); text-transform:uppercase; white-space:nowrap; }
+.section-pill { font-size:8px; padding:2px 7px; border-radius:2px; }
+.milestone-card { margin:4px 0 8px; padding:12px 16px; border-left:2px solid var(--green); background:rgba(0,232,122,.04); border-radius:0 4px 4px 0; }
+.milestone-label { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:3px; color:var(--muted2); text-transform:uppercase; margin-bottom:4px; }
+.milestone-text { font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(0,232,122,.7); line-height:1.5; }
+.final-section { margin:8px 16px 0; background:var(--card); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+.final-header { padding:16px 20px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.02); }
+.final-header h2 { font-size:20px; font-weight:800; letter-spacing:-.5px; }
+.final-header p { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted2); margin-top:4px; letter-spacing:1px; }
+.final-items { padding:8px 0; }
+.final-item { display:flex; align-items:center; gap:12px; padding:11px 20px; cursor:pointer; transition:background .15s; }
+.final-item:hover { background:rgba(255,255,255,.02); }
+.final-check { width:20px; height:20px; border:1.5px solid var(--muted); border-radius:2px; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.final-item.done .final-check { border-color:var(--green); background:rgba(0,232,122,.1); }
+.final-ck { display:none; font-size:11px; color:var(--green); font-weight:700; }
+.final-item.done .final-ck { display:block; }
+.final-text { font-size:13px; color:var(--text); transition:color .2s; }
+.final-item.done .final-text { color:var(--muted2); text-decoration:line-through; }
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin:16px 16px 0; background:var(--border); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+.stat-card { background:var(--card); padding:16px 12px; text-align:center; }
+.stat-val { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--green); line-height:1; }
+.stat-val.purple { color:var(--purple); }
+.stat-val.blue { color:var(--blue); }
+.stat-label { font-family:'JetBrains Mono',monospace; font-size:7px; letter-spacing:1.5px; color:var(--muted2); margin-top:5px; text-transform:uppercase; }
+.reset-btn { display:block; margin:20px auto 0; background:transparent; border:1px solid var(--border2); color:var(--muted2); font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; padding:10px 20px; cursor:pointer; border-radius:2px; transition:all .2s; text-transform:uppercase; }
+.reset-btn:hover { border-color:var(--red); color:var(--red); }
+.footer { text-align:center; margin-top:32px; padding:20px; font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:2px; border-top:1px solid var(--border); }
+.footer span { color:var(--green); }
+
+/* ── DAILY CHECK-IN BANNER ── */
+.checkin-overlay {
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(7,7,16,.85); backdrop-filter:blur(12px);
+  display:flex; align-items:flex-end; justify-content:center;
+  padding:20px; opacity:0; pointer-events:none;
+  transition:opacity .3s ease;
+}
+.checkin-overlay.show { opacity:1; pointer-events:all; }
+.checkin-sheet {
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:16px 16px 12px 12px;
+  width:100%; max-width:480px;
+  padding:0;
+  overflow:hidden;
+  transform:translateY(40px);
+  transition:transform .35s cubic-bezier(.16,1,.3,1);
+}
+.checkin-overlay.show .checkin-sheet { transform:translateY(0); }
+.checkin-bar {
+  width:36px; height:4px; background:var(--border2);
+  border-radius:2px; margin:12px auto 0;
+}
+.checkin-header {
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--border);
+}
+.checkin-time-row {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:10px;
+}
+.checkin-time {
+  font-family:'JetBrains Mono',monospace; font-size:11px;
+  color:var(--muted2); letter-spacing:2px; text-transform:uppercase;
+}
+.checkin-dismiss {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--muted2); cursor:pointer; padding:4px 8px;
+  border:1px solid var(--border2); border-radius:4px;
+  background:transparent; transition:all .2s; letter-spacing:1px;
+}
+.checkin-dismiss:hover { color:var(--text); border-color:var(--muted); }
+.checkin-greeting {
+  font-size:22px; font-weight:800; line-height:1.2;
+  margin-bottom:4px;
+}
+.checkin-greeting em { font-style:normal; color:var(--green); }
+.checkin-subtitle {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--muted2); letter-spacing:1px;
+}
+.checkin-body { padding:16px 24px 8px; }
+.checkin-today-label {
+  font-family:'JetBrains Mono',monospace; font-size:9px;
+  letter-spacing:3px; color:var(--muted2); text-transform:uppercase;
+  margin-bottom:10px;
+}
+.checkin-tasks { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.checkin-task {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px;
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:6px; cursor:pointer; transition:all .2s;
+}
+.checkin-task:hover { border-color:var(--border2); }
+.checkin-task.ct-done { opacity:.5; }
+.ct-check {
+  width:16px; height:16px; border:1.5px solid var(--muted);
+  border-radius:3px; flex-shrink:0; display:flex;
+  align-items:center; justify-content:center; transition:all .2s;
+  font-size:9px; color:var(--green);
+}
+.checkin-task.ct-done .ct-check { border-color:var(--green); background:rgba(0,232,122,.1); }
+.ct-check-mark { display:none; }
+.checkin-task.ct-done .ct-check-mark { display:block; }
+.ct-text {
+  font-size:12px; color:var(--text); flex:1; line-height:1.4;
+}
+.checkin-task.ct-done .ct-text { text-decoration:line-through; color:var(--muted2); }
+.ct-tag {
+  font-family:'JetBrains Mono',monospace; font-size:8px;
+  padding:2px 5px; border-radius:2px; flex-shrink:0;
+}
+.checkin-stats {
+  display:flex; gap:8px; margin-bottom:16px;
+}
+.cs-stat {
+  flex:1; background:var(--bg); border:1px solid var(--border);
+  border-radius:6px; padding:10px; text-align:center;
+}
+.cs-val {
+  font-family:'Syne',sans-serif; font-size:20px; font-weight:800;
+  color:var(--green); line-height:1;
+}
+.cs-label {
+  font-family:'JetBrains Mono',monospace; font-size:8px;
+  color:var(--muted2); letter-spacing:1px; margin-top:3px;
+  text-transform:uppercase;
+}
+.checkin-footer {
+  padding:12px 24px 24px;
+  display:flex; gap:8px;
+}
+.checkin-btn {
+  flex:1; padding:13px; border-radius:8px;
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  letter-spacing:2px; text-transform:uppercase;
+  cursor:pointer; border:none; transition:all .2s;
+}
+.btn-primary { background:var(--green); color:#000; font-weight:700; }
+.btn-primary:hover { background:#00ffa0; }
+.btn-secondary { background:var(--bg); color:var(--muted2); border:1px solid var(--border2); }
+.btn-secondary:hover { color:var(--text); border-color:var(--muted); }
+
+/* ── REMINDER SETTINGS ── */
+.reminder-settings {
+  margin:16px 16px 0;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:4px; padding:16px 20px;
+}
+.rs-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:12px;
+}
+.rs-title {
+  font-family:'JetBrains Mono',monospace; font-size:9px;
+  letter-spacing:3px; color:var(--muted2); text-transform:uppercase;
+}
+.rs-toggle {
+  width:36px; height:20px; background:var(--border2);
+  border-radius:10px; cursor:pointer; position:relative;
+  transition:background .2s;
+}
+.rs-toggle.on { background:var(--green); }
+.rs-toggle-knob {
+  width:14px; height:14px; background:var(--muted2);
+  border-radius:50%; position:absolute; top:3px; left:3px;
+  transition:all .2s;
+}
+.rs-toggle.on .rs-toggle-knob { left:19px; background:#000; }
+.rs-row { display:flex; align-items:center; gap:10px; }
+.rs-label {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--text); flex:1;
+}
+.rs-sublabel {
+  font-family:'JetBrains Mono',monospace; font-size:9px;
+  color:var(--muted2); margin-top:2px;
+}
+.rs-time-input {
+  background:var(--bg); border:1px solid var(--border2);
+  border-radius:4px; padding:6px 10px;
+  font-family:'JetBrains Mono',monospace; font-size:12px;
+  color:var(--text); outline:none; width:100px; text-align:center;
+}
+.rs-time-input:focus { border-color:var(--green); }
+.rs-shortcut {
+  margin-top:12px; padding:12px; background:var(--bg);
+  border:1px solid var(--border); border-radius:4px;
+}
+.rs-shortcut-title {
+  font-family:'JetBrains Mono',monospace; font-size:9px;
+  color:var(--muted2); letter-spacing:2px; text-transform:uppercase;
+  margin-bottom:6px;
+}
+.rs-shortcut-step {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--text); line-height:1.7;
+}
+.rs-shortcut-step span { color:var(--green); }
+</style>
+</head>
+<body>
+
+<!-- DAILY CHECK-IN BANNER -->
+<div class="checkin-overlay" id="checkinOverlay">
+  <div class="checkin-sheet" id="checkinSheet">
+    <div class="checkin-bar"></div>
+    <div class="checkin-header">
+      <div class="checkin-time-row">
+        <div class="checkin-time" id="checkinTimeLabel">Evening Check-In</div>
+        <button class="checkin-dismiss" onclick="dismissCheckin()">Dismiss ×</button>
+      </div>
+      <div class="checkin-greeting" id="checkinGreeting">Time to grind, <em>Fame</em></div>
+      <div class="checkin-subtitle" id="checkinSubtitle">Here's what's on deck for today</div>
+    </div>
+    <div class="checkin-body">
+      <div class="checkin-stats">
+        <div class="cs-stat"><div class="cs-val" id="csDayDone">0</div><div class="cs-label">Today Done</div></div>
+        <div class="cs-stat"><div class="cs-val" id="csDayTotal">0</div><div class="cs-label">Today Total</div></div>
+        <div class="cs-stat"><div class="cs-val" id="csWeekPct" style="color:var(--purple)">0%</div><div class="cs-label">Week Done</div></div>
+      </div>
+      <div class="checkin-today-label">// Today's Tasks</div>
+      <div class="checkin-tasks" id="checkinTaskList"></div>
+    </div>
+    <div class="checkin-footer">
+      <button class="checkin-btn btn-secondary" onclick="dismissCheckin()">Skip Today</button>
+      <button class="checkin-btn btn-primary" onclick="goToToday()">Let's Go →</button>
+    </div>
+  </div>
+</div>
+
+<div class="sticky-header">
+  <div class="sticky-title">Month 1</div>
+  <div class="header-bars">
+    <div class="mini-bar"><div class="mini-bar-label">PI</div><div class="mini-bar-track"><div class="mini-bar-fill fill-green" id="hPiFill"></div></div></div>
+    <div class="mini-bar"><div class="mini-bar-label">UDEMY</div><div class="mini-bar-track"><div class="mini-bar-fill fill-purple" id="hUdemyFill"></div></div></div>
+  </div>
+  <div class="header-count"><span id="hDone">0</span>/<span id="hTotal">0</span></div>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow">AI + Cybersecurity Career Track</div>
+  <div class="hero-title">Month 1<em>Tracker</em></div>
+  <div class="hero-sub">// Day-by-Day · Pi + Udemy · Charlotte, NC</div>
+</div>
+
+<div class="legend">
+  <div class="legend-chip"><div class="chip-dot" style="background:var(--green)"></div>PI / Python</div>
+  <div class="legend-chip"><div class="chip-dot" style="background:var(--purple)"></div>Udemy Course</div>
+  <div class="legend-chip"><div class="chip-dot" style="background:var(--yellow)"></div>GitHub / Ship</div>
+  <div class="legend-chip"><div class="chip-dot" style="background:var(--red)"></div>Career Move</div>
+  <div class="legend-chip"><div class="chip-dot" style="background:var(--blue)"></div>Learn</div>
+</div>
+
+<div class="overall-progress">
+  <div class="op-header"><div class="op-title">Overall Progress</div><div class="op-pct" id="opPct">0%</div></div>
+  <div class="op-tracks">
+    <div class="op-track-row"><div class="op-track-label">Pi Track</div><div class="op-track-bar"><div class="op-track-fill fill-green" id="opPiFill"></div></div><div class="op-track-num" id="opPiNum">0/0</div></div>
+    <div class="op-track-row"><div class="op-track-label">Udemy</div><div class="op-track-bar"><div class="op-track-fill fill-purple" id="opUdemyFill"></div></div><div class="op-track-num" id="opUdemyNum">0/0</div></div>
+  </div>
+</div>
+
+<div class="week-nav">
+  <div class="week-tab w1 active" onclick="switchWeek(1)"><span class="tab-num">W1</span><span class="tab-progress" id="tab1p">0/0</span></div>
+  <div class="week-tab w2" onclick="switchWeek(2)"><span class="tab-num">W2</span><span class="tab-progress" id="tab2p">0/0</span></div>
+  <div class="week-tab w3" onclick="switchWeek(3)"><span class="tab-num">W3</span><span class="tab-progress" id="tab3p">0/0</span></div>
+  <div class="week-tab w4" onclick="switchWeek(4)"><span class="tab-num">W4</span><span class="tab-progress" id="tab4p">0/0</span></div>
+</div>
+
+<!-- WEEK 1 -->
+<div class="week-panel w1 active" id="panel1">
+  <div class="week-hero">
+    <div class="week-hero-label">// Week 01 of 04</div>
+    <div class="week-hero-title">Environment Setup & Terminal</div>
+    <div class="week-hero-goal">Goal: Udemy started Mon/Tue → Pi arrives Wed → Ollama + GitHub live by Fri</div>
+    <div class="week-hero-stats">
+      <div class="wh-stat"><div class="wh-dot" style="background:var(--green)"></div><span id="w1pistat">0/0 Pi</span></div>
+      <div class="wh-stat"><div class="wh-dot" style="background:var(--purple)"></div><span id="w1ustat">0/0 Udemy</span></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-mon">Mon</div><div class="day-name">📦 Pi En Route — Udemy Prep Day</div></div><div class="day-count"><div class="day-done-pips" id="pips-w1-mon"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Enroll in The Complete Agentic AI Engineering Course on Udemy</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch course introduction and overview (Day 1 content)</div><div class="task-note">Pay attention to the 6-week structure — map it against your monthly plan</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Find the course GitHub repo link in the Resources section — open it and Fork it</div><div class="task-note">Forking = making your own copy to freely modify. This is where your security-adapted projects will live — your portfolio starts here, before the Pi even arrives.</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy Day 2 — LLM fundamentals and connecting models</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Create a GitHub account at github.com while you wait — use a professional username</div><div class="task-note">You can do this from any browser — phone, laptop, work computer. Managers will Google you so use firstname-lastname or a clean handle. The Pi is coming but your GitHub starts today.</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-tue">Tue</div><div class="day-name">📦 Pi En Route — Theory & Prep</div></div><div class="day-count"><div class="day-done-pips" id="pips-w1-tue"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy Day 3 — Autonomous agents that collaborate using Async Python</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy Day 4 — Build and run your first AI agent (no memory, no tools)</div><div class="task-note">You won't be able to run this on the Pi yet, but absorbing the concepts now means Wednesday is pure hands-on momentum with no theory friction</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Study the 10 terminal commands you'll use Wednesday — memorize them now</div><div class="task-code">pwd          # where am I?
+ls           # list files in folder
+cd folder    # move into a folder
+cd ..        # go back one level
+mkdir name   # create a new folder
+rm -rf name  # delete folder
+sudo         # run as admin
+apt update   # refresh software list
+apt install  # install something
+clear        # clean the screen</div><div class="task-note">Read these, say them out loud, visualize using them. You'll be running them on the Pi tomorrow.</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch freeCodeCamp Python intro on YouTube — first 30 minutes only</div><div class="task-note">Search "freeCodeCamp Python for Beginners" — just the first 30 min tonight. Variables, print, basic syntax. Tomorrow you'll type it on the Pi.</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Prep your physical setup so Wednesday is instant — find your monitor, HDMI cable, keyboard, and mouse</div><div class="task-note">The Pi arrives Wednesday. If you have to scramble for cables you lose momentum. Stage everything tonight so unboxing to first boot takes under 10 minutes.</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-wed">Wed</div><div class="day-name">🎉 Pi Arrives — Unbox, Boot & Ollama</div></div><div class="day-count"><div class="day-done-pips" id="pips-w1-wed"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Unbox your Raspberry Pi 5 — take a photo for LinkedIn later 🎉</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Connect HDMI monitor, USB keyboard, USB mouse — then plug in power</div><div class="task-note">The Pi boots automatically when powered — no power button. You already staged everything Tuesday night so this should take under 5 minutes.</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Complete first boot setup — set username, password, connect to WiFi</div><div class="task-note">Write your username and password somewhere safe right now</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Open the Terminal and run your first command — update the system</div><div class="task-code">sudo apt update && sudo apt upgrade -y</div><div class="task-note">You memorized these commands yesterday — now you're actually running them. That feeling is the whole point.</div><div class="task-tags"><span class="tag tag-cmd">Command</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Practice the 10 terminal commands you studied Tuesday — run each one</div><div class="task-code">pwd && ls && mkdir ~/ai-security && cd ~/ai-security && pwd</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Install Ollama — your local AI engine</div><div class="task-code">curl -fsSL https://ollama.com/install.sh | sh</div><div class="task-note">Takes about a minute. You'll see a progress indicator.</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Download the phi3 AI model — let it run while you do something else</div><div class="task-code">ollama pull phi3</div><div class="task-note">Downloads ~2GB — takes several minutes. Perfect time to grab a snack or set up your desk area.</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Run your FIRST conversation with a local AI — this moment is worth remembering</div><div class="task-code">ollama run phi3</div><div class="task-note">Type your message, hit Enter. Type /bye to exit. This AI is running 100% offline on hardware you own. No cloud, no subscription.</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Ask it this question and read the response carefully</div><div class="task-code">Explain what a SIEM does like I'm new to cybersecurity</div><div class="task-note">This is your daily work — see how well your local AI explains it</div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-thu">Thu</div><div class="day-name">GitHub Push + Python Setup</div></div><div class="day-count"><div class="day-done-pips" id="pips-w1-thu"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Install Git on the Pi and link it to the GitHub account you made Monday</div><div class="task-code">sudo apt install git -y
+git config --global user.name "Your Name"
+git config --global user.email "<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8d1c7dde8cdc5c9c1c486cbc7c5">[email&#160;protected]</a>"</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Create your "ai-security-journey" PUBLIC repo on GitHub.com if you haven't yet</div><div class="task-note">Click + top right → New repository → Make it Public → Create</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Create your first README from the Pi and push it live — your portfolio is now public</div><div class="task-code">cd ~/ai-security
+echo "# AI Security Journey" > README.md
+echo "Building AI-powered security tools. Charlotte, NC." >> README.md
+git init && git add README.md
+git commit -m "Week 1: Pi arrived, journey begins"</div><div class="task-note">Follow GitHub's push instructions shown on the new repo page</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Install Python tools and confirm everything works</div><div class="task-code">sudo apt install python3-pip -y
+pip3 install ollama
+python3 --version</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Run Python interactively — practice what you studied Tuesday</div><div class="task-code">python3
+>>> name = "AI Security"
+>>> print(f"Hello from {name}!")
+>>> threats = ["phishing", "ransomware", "ddos"]
+>>> for t in threats: print(t)
+>>> exit()</div><div class="task-note">You read about this Tuesday — now you're running it live on hardware you own.</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-fri">Fri</div><div class="day-name">Script #1 — Hello World AI</div></div><div class="day-count"><div class="day-done-pips" id="pips-w1-fri"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Create your first Python AI script file</div><div class="task-code">cd ~/ai-security
+nano script1_hello_ai.py</div><div class="task-note">nano is a simple terminal text editor. Ctrl+X to exit, Y to save.</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Type this code and save it</div><div class="task-code">import ollama
+
+response = ollama.chat(model='phi3', messages=[
+    {
+        'role': 'user',
+        'content': 'What are the top 5 cybersecurity threats in 2025?'
+    }
+])
+
+print("🤖 AI Response:")
+print(response['message']['content'])</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Run it and watch the AI respond in your terminal</div><div class="task-code">python3 script1_hello_ai.py</div><div class="task-note">First run is slow — model loading takes ~30 seconds. Subsequent runs are faster.</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Break it intentionally — delete a quote mark, re-run, read the error carefully</div><div class="task-note">Errors are instructions not failures. This is how real developers learn.</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Push Script #1 to GitHub</div><div class="task-code">cd ~/ai-security
+git add .
+git commit -m "Week 1 Fri: Script 1 - Hello World AI"
+git push</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-wknd">Weekend</div><div class="day-name">Script #2 + Udemy Day 5</div></div><div class="day-count"><div class="day-done-pips" id="pips-w1-wknd"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Write Script #2 from scratch with user input — pick any security question you care about</div><div class="task-code">import ollama
+
+question = input("Ask a security question: ")
+
+response = ollama.chat(model='phi3', messages=[
+    {'role': 'user', 'content': question}
+])
+
+print("\n🔐 AI Answer:")
+print(response['message']['content'])</div><div class="task-note">Ideas: "Explain phishing" / "What logs should I monitor for ransomware?" / "How do SOC analysts triage alerts?"</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Push Script #2 to GitHub and update your README</div><div class="task-code">git add . && git commit -m "Week 1 Weekend: Script 2 complete" && git push</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy Day 5 — Memory, tokenization, and OpenAI API traces</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Rest — write 3 wins from this week in your README. You went from zero to a Pi running AI in 3 days.</div><div class="task-note">Consistency beats intensity. Recovery is part of the plan.</div></div></div>
+    </div>
+  </div>
+
+  <div class="milestone-card">
+    <div class="milestone-label">// Week 1 Milestone</div>
+    <div class="milestone-text">Pi arrived Wed ✓ · Ollama + phi3 running ✓ · GitHub live ✓ · 2 scripts built ✓ · Udemy Days 1-5 complete ✓</div>
+  </div>
+</div>
+
+<!-- WEEK 2 -->
+<div class="week-panel w2" id="panel2">
+  <div class="week-hero">
+    <div class="week-hero-label">// Week 02 of 04</div>
+    <div class="week-hero-title">Python Foundations</div>
+    <div class="week-hero-goal">Goal: 3 Python scripts live on GitHub + Udemy Week 1 complete</div>
+    <div class="week-hero-stats">
+      <div class="wh-stat"><div class="wh-dot" style="background:var(--green)"></div><span id="w2pistat">0/0 Pi</span></div>
+      <div class="wh-stat"><div class="wh-dot" style="background:var(--purple)"></div><span id="w2ustat">0/0 Udemy</span></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-mon">Mon</div><div class="day-name">Python Setup & Variables</div></div><div class="day-count"><div class="day-done-pips" id="pips-w2-mon"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Install Python tools</div><div class="task-code">sudo apt install python3-pip -y
+pip3 install ollama
+python3 --version</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Learn variables and strings in Python interactive mode</div><div class="task-code">python3
+>>> name = "AI Security"
+>>> print(name)
+>>> greeting = f"Hello, {name}!"
+>>> print(greeting)
+>>> exit()</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Learn lists and loops — these power your future tools</div><div class="task-code">threats = ["phishing", "ransomware", "ddos"]
+for threat in threats:
+    print(f"Threat detected: {threat}")</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy Day 4 — Build and run your first AI agent (no memory, no tools)</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-tue">Tue</div><div class="day-name">Functions + Coursera Enroll</div></div><div class="day-count"><div class="day-done-pips" id="pips-w2-tue"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Learn Python functions — the building block of every script you'll write</div><div class="task-code">def analyze_threat(threat_name):
+    print(f"Analyzing: {threat_name}")
+    return f"{threat_name} — flagged for review"
+
+result = analyze_threat("SQL Injection")
+print(result)</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Enroll in Python for Everybody on Coursera — audit for free</div><div class="task-note">coursera.org → search "Python for Everybody" → Enroll → Audit course (free)</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy Day 5 — Memory, tokenization, and OpenAI API traces</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-wed">Wed</div><div class="day-name">Script #1 — Hello World AI</div></div><div class="day-count"><div class="day-done-pips" id="pips-w2-wed"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Create your first Python AI script file</div><div class="task-code">cd ~/ai-security
+nano script1_hello_ai.py</div><div class="task-note">nano is a simple text editor. Ctrl+X to exit, Y to save.</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Type this code and save it</div><div class="task-code">import ollama
+
+response = ollama.chat(model='phi3', messages=[
+    {
+        'role': 'user',
+        'content': 'What are the top 5 cybersecurity threats in 2025?'
+    }
+])
+
+print("🤖 AI Response:")
+print(response['message']['content'])</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Run it and watch the AI respond in your terminal</div><div class="task-code">python3 script1_hello_ai.py</div><div class="task-note">First run is slow — model loading takes ~30 seconds. Subsequent runs are faster.</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Break it intentionally — delete a quote mark, re-run, read the error message carefully</div><div class="task-note">Understanding error messages is one of the most important skills you can build. Errors are instructions, not failures.</div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-thu">Thu</div><div class="day-name">Script #2 — Your Own Question</div></div><div class="day-count"><div class="day-done-pips" id="pips-w2-thu"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Write Script #2 from scratch with user input — pick any security question</div><div class="task-code">import ollama
+
+question = input("Ask a security question: ")
+
+response = ollama.chat(model='phi3', messages=[
+    {'role': 'user', 'content': question}
+])
+
+print("\n🔐 AI Answer:")
+print(response['message']['content'])</div><div class="task-note">Ideas: "Explain phishing" / "What logs should I monitor for ransomware?" / "How do SOC analysts triage alerts?"</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy — Project 1: Build the Career Digital Twin agent</div><div class="task-note">Study how they define the agent's role and goal — this pattern is reusable for everything</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-fri">Fri</div><div class="day-name">Push to GitHub + Fork Udemy Repo</div></div><div class="day-count"><div class="day-done-pips" id="pips-w2-fri"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Add comments to both scripts explaining what each line does</div><div class="task-note">Comments start with #. Example: # This sends the question to the AI model</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Push both scripts to GitHub</div><div class="task-code">cd ~/ai-security
+git add .
+git commit -m "Week 2: 2 Python AI scripts complete"
+git push</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Clone your forked Udemy repo to your Pi</div><div class="task-code">cd ~
+git clone https://github.com/YOUR-USERNAME/REPO-NAME.git</div><div class="task-note">Replace YOUR-USERNAME and REPO-NAME with your actual GitHub info</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-wknd">Weekend</div><div class="day-name">Reinforce + Udemy Project 2</div></div><div class="day-count"><div class="day-done-pips" id="pips-w2-wknd"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Re-read both scripts out loud — explain each line to yourself like you're teaching someone</div><div class="task-note">If you can teach it, you understand it. This technique accelerates learning faster than re-reading notes.</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy — Project 2: SDR Agent (agent that crafts and sends emails)</div><div class="task-note">Pay attention to how they define the agent's job — you'll adapt this pattern for security alerts next week</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="milestone-card">
+    <div class="milestone-label">// Week 2 Milestone</div>
+    <div class="milestone-text">2 Python scripts on GitHub ✓ · Udemy Week 1 done ✓ · First agent built ✓</div>
+  </div>
+</div>
+
+<!-- WEEK 3 -->
+<div class="week-panel w3" id="panel3">
+  <div class="week-hero">
+    <div class="week-hero-label">// Week 03 of 04</div>
+    <div class="week-hero-title">Build Your First Security Tool</div>
+    <div class="week-hero-goal">Goal: AI Log Analyzer working + security-adapted Udemy project live</div>
+    <div class="week-hero-stats">
+      <div class="wh-stat"><div class="wh-dot" style="background:var(--green)"></div><span id="w3pistat">0/0 Pi</span></div>
+      <div class="wh-stat"><div class="wh-dot" style="background:var(--purple)"></div><span id="w3ustat">0/0 Udemy</span></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-mon">Mon</div><div class="day-name">File Handling + Log Research</div></div><div class="day-count"><div class="day-done-pips" id="pips-w3-mon"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Learn Python file reading — this is how your tool will ingest logs</div><div class="task-code">echo "192.168.1.1 GET /admin 401" > test.txt
+
+python3 -c "
+with open('test.txt', 'r') as f:
+    content = f.read()
+print(content)
+"</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Google "sample Apache access log" — study what a real security log looks like</div><div class="task-note">Look for: IP addresses, timestamps, HTTP methods (GET/POST), status codes (401=unauthorized, 404=not found, 500=server error). These are what analysts scan for threats.</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Create a sample log file on your Pi to practice with</div><div class="task-code">cd ~/ai-security
+cat > sample.log << 'EOF'
+192.168.1.100 - - [22/Mar/2026:10:00:01] "GET /login HTTP/1.1" 200
+10.0.0.5 - - [22/Mar/2026:10:00:45] "POST /admin HTTP/1.1" 401
+10.0.0.5 - - [22/Mar/2026:10:00:46] "POST /admin HTTP/1.1" 401
+10.0.0.5 - - [22/Mar/2026:10:00:47] "POST /admin HTTP/1.1" 401
+192.168.1.200 - - [22/Mar/2026:10:01:00] "GET /index.html HTTP/1.1" 200
+EOF</div><div class="task-note">This creates a fake log with a suspicious brute-force pattern (same IP, 3 failed logins)</div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-tue">Tue</div><div class="day-name">Build the AI Log Analyzer</div></div><div class="day-count"><div class="day-done-pips" id="pips-w3-tue"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Create Script #3 — AI Log Summarizer v0.1</div><div class="task-code">nano ~/ai-security/script3_log_analyzer.py</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Type in the full script</div><div class="task-code">import ollama
+from datetime import datetime
+
+<span class="comment"># Read the log file</span>
+with open('sample.log', 'r') as f:
+    log_data = f.read()[:3000]  <span class="comment"># first 3000 chars</span>
+
+print("🔍 Analyzing log file with AI...")
+print("-" * 40)
+
+<span class="comment"># Ask AI to analyze it as a security analyst would</span>
+response = ollama.chat(model='phi3', messages=[{
+    'role': 'user',
+    'content': f"""You are a cybersecurity analyst.
+Analyze this security log and identify:
+1. Suspicious IP addresses
+2. Failed login attempts (401/403 errors)
+3. Unusual patterns or potential attacks
+4. Risk assessment: Low / Medium / High
+
+LOG DATA:
+{log_data}"""
+}])
+
+timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+print(f"📋 AI Security Analysis [{timestamp}]:")
+print(response['message']['content'])</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Run it and read the output — does the AI catch the brute force pattern?</div><div class="task-code">python3 ~/ai-security/script3_log_analyzer.py</div><div class="task-note">This is literally what enterprise AI security tools do — you just built a basic version of it.</div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-wed">Wed</div><div class="day-name">Udemy — Adapt Project 2 for Security</div></div><div class="day-count"><div class="day-done-pips" id="pips-w3-wed"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-label"><span class="tag tag-udemy section-pill">Udemy Portfolio Adaptation</span></div><div class="section-divider-line"></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy Week 2 intro — OpenAI Agents SDK overview</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Open Project 2 in your forked repo — study how the agent's role and goal are defined</div><div class="task-note">Look for the system prompt or agent description. This is the part you'll customize.</div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Adapt it: change the agent from "sales rep writing emails" → "SOC analyst writing security alert notifications"</div><div class="task-note">Change the system prompt role, the input format (alert data instead of leads), and the output format (incident summary instead of sales email)</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Push your security-adapted version to your forked GitHub repo</div><div class="task-code">git add .
+git commit -m "Adapted Project 2: Security alert notification agent"
+git push</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-thu">Thu</div><div class="day-name">Polish the Analyzer + Push</div></div><div class="day-count"><div class="day-done-pips" id="pips-w3-thu"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Add detailed comments to every section of script3</div><div class="task-note">Rule: every 3-5 lines should have a comment. Future you will thank present you.</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Make the log filename configurable — accept it as user input</div><div class="task-code">log_file = input("Enter log filename (Enter for sample.log): ")
+if not log_file:
+    log_file = "sample.log"</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Push the polished version to GitHub</div><div class="task-code">cd ~/ai-security
+git add .
+git commit -m "Script 3: AI Log Analyzer v0.1 polished"
+git push</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-fri">Fri</div><div class="day-name">Go Public — LinkedIn Post</div></div><div class="day-count"><div class="day-done-pips" id="pips-w3-fri"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Write and post on LinkedIn about what you built this week</div><div class="task-note">Template: "3 weeks ago I knew zero Python. This week I built an AI-powered security log analyzer that runs 100% locally on a Raspberry Pi — no cloud, no subscription. It analyzes logs and flags suspicious patterns using AI. Next: building a threat intelligence research agent. #Cybersecurity #AI #BuildingInPublic"</div><div class="task-tags"><span class="tag tag-show">Show</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Update GitHub README with description of log analyzer — what it does, how to run it</div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch Udemy — Project 3 intro: Deep Research Agent</div><div class="task-note">This is the one you'll adapt into a Threat Intelligence agent next week — pay close attention</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-wknd">Weekend</div><div class="day-name">Complete Project 3 + Rest</div></div><div class="day-count"><div class="day-done-pips" id="pips-w3-wknd"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Complete Udemy Project 3 — Deep Research Agent (build it exactly as shown first)</div><div class="task-note">Get it working before you customize it. Understanding the original is key to adapting it well.</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Take one full day off — no code, no studying. Seriously.</div><div class="task-note">Burnout is the #1 killer of learning streaks. Rest is productive.</div></div></div>
+    </div>
+  </div>
+
+  <div class="milestone-card">
+    <div class="milestone-label">// Week 3 Milestone</div>
+    <div class="milestone-text">AI Log Analyzer on GitHub ✓ · Security alert agent pushed ✓ · LinkedIn post live ✓</div>
+  </div>
+</div>
+
+<!-- WEEK 4 -->
+<div class="week-panel w4" id="panel4">
+  <div class="week-hero">
+    <div class="week-hero-label">// Week 04 of 04</div>
+    <div class="week-hero-title">Polish, Position & Promote</div>
+    <div class="week-hero-goal">Goal: Threat Intel Agent live + cert started + manager demo</div>
+    <div class="week-hero-stats">
+      <div class="wh-stat"><div class="wh-dot" style="background:var(--green)"></div><span id="w4pistat">0/0 Pi</span></div>
+      <div class="wh-stat"><div class="wh-dot" style="background:var(--purple)"></div><span id="w4ustat">0/0 Udemy</span></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-mon">Mon</div><div class="day-name">Script #4 — Menu-Driven Assistant</div></div><div class="day-count"><div class="day-done-pips" id="pips-w4-mon"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Create Script #4 — a full menu-driven AI Security Assistant</div><div class="task-code">nano ~/ai-security/script4_security_assistant.py</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Build the full menu-driven version</div><div class="task-code">import ollama
+from datetime import datetime
+
+def analyze_log():
+    f = input("Log file (Enter=sample.log): ") or "sample.log"
+    try:
+        with open(f) as file:
+            data = file.read()[:3000]
+        r = ollama.chat(model='phi3', messages=[{
+            'role':'user',
+            'content':f'Analyze this security log for threats:\n{data}'
+        }])
+        print(f"\n📋 [{datetime.now().strftime('%H:%M')}]")
+        print(r['message']['content'])
+    except FileNotFoundError:
+        print(f"❌ File not found: {f}")
+
+def ask_question():
+    q = input("Security question: ")
+    r = ollama.chat(model='phi3',messages=[{'role':'user','content':q}])
+    print("\n🤖", r['message']['content'])
+
+while True:
+    print("\n🛡️  AI Security Assistant")
+    print("1. Analyze a log file")
+    print("2. Ask a security question")
+    print("3. Exit")
+    c = input("Choose (1-3): ").strip()
+    if c=='1': analyze_log()
+    elif c=='2': ask_question()
+    elif c=='3': print("Stay secure. 👋"); break
+    else: print("Invalid — try again")</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Run it and test all 3 menu options</div><div class="task-code">python3 ~/ai-security/script4_security_assistant.py</div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-tue">Tue</div><div class="day-name">Threat Intelligence Agent</div></div><div class="day-count"><div class="day-done-pips" id="pips-w4-tue"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-label"><span class="tag tag-udemy section-pill">Portfolio Gold — Udemy Project 3 Adapted</span></div><div class="section-divider-line"></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Open Project 3 (Deep Research Agent) in your forked repo and study the structure</div><div class="task-note">How is the research topic passed in? How does it decide what to search? How is output formatted?</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Adapt it into a Threat Intelligence Research Agent — change the input to CVE IDs, malware names, or threat actor groups</div><div class="task-note">Change the output format to include: Severity, Affected Systems, CVE Score, Recommended Remediation Actions. This is the exact format SOC teams need.</div><div class="task-tags"><span class="tag tag-build">Build</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Test it — enter "CVE-2024-3400" and see what your agent outputs</div><div class="task-note">This was a critical PAN-OS vulnerability in 2024. See how your agent researches and summarizes it.</div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Push your Threat Intel Agent to GitHub — this is portfolio gold</div><div class="task-code">git add .
+git commit -m "Project 3 adapted: Threat Intelligence Research Agent"
+git push</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-wed">Wed</div><div class="day-name">Google Cert + Full Review</div></div><div class="day-count"><div class="day-done-pips" id="pips-w4-wed"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Enroll in Google Cybersecurity Certificate on Coursera</div><div class="task-note">coursera.org/professional-certificates/google-cybersecurity</div><div class="task-tags"><span class="tag tag-learn">Learn</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Complete Module 1 — Foundations of Cybersecurity</div><div class="task-note">This gives the theory behind everything you've been building hands-on</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Go through all 4 scripts top to bottom — you should understand every line now</div><div class="task-note">If anything is fuzzy, look it up. You've come far enough that it should mostly make sense.</div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-thu">Thu</div><div class="day-name">GitHub README Overhaul</div></div><div class="day-count"><div class="day-done-pips" id="pips-w4-thu"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Rewrite your GitHub README professionally — this is your digital resume</div><div class="task-note">Structure: Title → What this is → What I built (list each script) → Tools used → What's next. Managers and recruiters will read this.</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">List all 4 scripts with a one-line description of each one</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Add a Reflection section — what you learned, what was hard, what's next</div><div class="task-note">This shows self-awareness and growth mindset — qualities that get people promoted.</div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-fri">Fri</div><div class="day-name">Manager Demo + Final Push</div></div><div class="day-count"><div class="day-done-pips" id="pips-w4-fri"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Prepare your 3-minute demo — practice it out loud before showing anyone</div><div class="task-note">Script: "I've been learning AI security automation on my own time. I built a tool that reads security logs and uses local AI to flag suspicious activity — no cloud, runs right here on this Pi. Here's how it works..." Then run script4.</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Show your manager your GitHub + the running tool (optional but powerful)</div><div class="task-note">They may not understand all of it — but they WILL remember that you're building real things on your own time. That's what gets people promoted.</div><div class="task-tags"><span class="tag tag-show">Show</span></div></div></div>
+      <div class="task udemy-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Watch remaining Udemy Week 2 content you haven't finished yet</div><div class="task-tags"><span class="tag tag-udemy">Udemy</span></div></div></div>
+    </div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay(this)"><div class="day-left"><div class="day-badge badge-wknd">Weekend</div><div class="day-name">Ship Everything + Celebrate</div></div><div class="day-count"><div class="day-done-pips" id="pips-w4-wknd"></div><span class="day-chevron">›</span></div></div>
+    <div class="day-body">
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Final git push — make sure everything is live on GitHub</div><div class="task-code">cd ~/ai-security
+git add .
+git commit -m "Month 1 complete — 4 scripts, 1 threat intel agent"
+git push</div><div class="task-tags"><span class="tag tag-ship">Ship</span></div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">Write down your 3 biggest wins from Month 1 and 3 goals for Month 2</div><div class="task-note">Month 2 preview: Splunk/Sentinel basics · AI alert triage tool · CrewAI from Udemy · Second LinkedIn post</div></div></div>
+      <div class="task pi-task" onclick="toggleTask(this)"><div class="task-cb"><span class="checkmark">✓</span></div><div class="task-content"><div class="task-text">🎉 Celebrate — you built real AI security tools from scratch in 30 days</div><div class="task-note">A month ago you had never written Python. Now: 4 scripts, GitHub portfolio, Threat Intel Agent, and a cert in progress. That's genuinely impressive. Don't skip this step.</div></div></div>
+    </div>
+  </div>
+
+  <div class="milestone-card">
+    <div class="milestone-label">// Month 1 Complete</div>
+    <div class="milestone-text">4 scripts ✓ · Threat Intel Agent ✓ · Google Cert started ✓ · Manager demo ✓ · Month 2 ready ✓</div>
+  </div>
+</div>
+
+<!-- FINAL CHECKLIST -->
+<div class="final-section">
+  <div class="final-header">
+    <h2>Month 1 Success Checklist</h2>
+    <p>// Complete all 10 before starting Month 2</p>
+  </div>
+  <div class="final-items">
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">🥧 Raspberry Pi 5 booted and running</div></div>
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">🤖 Ollama + phi3 model installed</div></div>
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">🐙 GitHub repo live with professional README</div></div>
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">🐍 4 Python scripts written and pushed</div></div>
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">🔍 AI Log Analyzer v0.1 working</div></div>
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">🛡️ Menu-driven Security Assistant built</div></div>
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">🍴 Udemy repo forked + 2 projects adapted</div></div>
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">🕵️ Threat Intelligence Agent live on GitHub</div></div>
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">🎓 Google Cybersecurity Certificate enrolled + Module 1 done</div></div>
+    <div class="final-item" onclick="toggleFinal(this)"><div class="final-check"><span class="final-ck">✓</span></div><div class="final-text">📣 LinkedIn post published + manager demo done</div></div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-val">45</div><div class="stat-label">Min/Weekday</div></div>
+  <div class="stat-card"><div class="stat-val purple">30</div><div class="stat-label">Min/Udemy</div></div>
+  <div class="stat-card"><div class="stat-val blue">~8</div><div class="stat-label">Hrs/Week</div></div>
+  <div class="stat-card"><div class="stat-val">4</div><div class="stat-label">Scripts Built</div></div>
+</div>
+
+<button class="reset-btn" onclick="resetAll()">↺ Reset All Progress</button>
+
+<!-- REMINDER SETTINGS -->
+<div class="reminder-settings">
+  <div class="rs-header">
+    <div class="rs-title">// Daily Check-In Reminder</div>
+    <div class="rs-toggle" id="rsToggle" onclick="toggleReminder()">
+      <div class="rs-toggle-knob"></div>
+    </div>
+  </div>
+  <div class="rs-row">
+    <div>
+      <div class="rs-label">Reminder Time</div>
+      <div class="rs-sublabel">Banner shows when you open the app near this time</div>
+    </div>
+    <input type="time" class="rs-time-input" id="rsTimeInput" value="19:00" onchange="saveReminderTime()">
+  </div>
+  <div class="rs-shortcut">
+    <div class="rs-shortcut-title">// Set Up Auto-Open on iPhone (2 min)</div>
+    <div class="rs-shortcut-step">
+      <span>1.</span> Open the <span>Shortcuts</span> app on your iPhone<br>
+      <span>2.</span> Tap <span>Automation</span> → <span>+</span> → <span>Time of Day</span><br>
+      <span>3.</span> Set your reminder time → <span>Next</span><br>
+      <span>4.</span> Search <span>Open URLs</span> → paste your tracker URL<br>
+      <span>5.</span> Done — iPhone opens the tracker automatically every day 🔒
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  AI + CYBERSECURITY · <span>MONTH 1 OF 12</span> · CHARLOTTE, NC · GRIND MODE
+</div>
+
+<script>
+const KEY='ai_sec_v4';
+
+// ── DAY MAPPING ─────────────────────────────────────────────────────
+// Maps week number + day name → the tasks in that day card
+const DAY_MAP = {
+  1: { mon:'📦 Pi En Route — Udemy Prep Day', tue:'📦 Pi En Route — Theory & Prep', wed:'🎉 Pi Arrives — Unbox, Boot & Ollama', thu:'GitHub Push + Python Setup', fri:'Script #1 — Hello World AI', wknd:'Script #2 + Udemy Day 5' },
+  2: { mon:'Python Setup & Variables', tue:'Functions + Coursera Enroll', wed:'Script #1 — Hello World AI', thu:'Script #2 — Your Own Question', fri:'Push to GitHub + Fork Udemy Repo', wknd:'Reinforce + Udemy Project 2' },
+  3: { mon:'File Handling + Log Research', tue:'Build the AI Log Analyzer', wed:'Udemy — Adapt Project 2 for Security', thu:'Polish the Analyzer + Push', fri:'Go Public — LinkedIn Post', wknd:'Complete Project 3 + Rest' },
+  4: { mon:'Script #4 — Menu-Driven Assistant', tue:'Threat Intelligence Agent', wed:'Google Cert + Full Review', thu:'GitHub README Overhaul', fri:'Manager Demo + Final Push', wknd:'Ship Everything + Celebrate' }
+};
+
+// ── STORAGE ──────────────────────────────────────────────────────────
+function save(){
+  const t=[...document.querySelectorAll('.task')].map(e=>e.classList.contains('done'));
+  const f=[...document.querySelectorAll('.final-item')].map(e=>e.classList.contains('done'));
+  const d=[...document.querySelectorAll('.day-header')].map(e=>e.classList.contains('open'));
+  try{localStorage.setItem(KEY,JSON.stringify({t,f,d}));}catch(e){}
+}
+
+function load(){
+  try{
+    const s=JSON.parse(localStorage.getItem(KEY));
+    if(!s)return;
+    document.querySelectorAll('.task').forEach((e,i)=>{if(s.t[i])e.classList.add('done');});
+    document.querySelectorAll('.final-item').forEach((e,i)=>{if(s.f[i])e.classList.add('done');});
+    document.querySelectorAll('.day-header').forEach((h,i)=>{
+      if(s.d&&s.d[i]){h.classList.add('open');h.nextElementSibling.classList.add('open');}
+    });
+  }catch(e){}
+}
+
+// ── TASK INTERACTIONS ────────────────────────────────────────────────
+function toggleTask(el){el.classList.toggle('done');updateAll();save();}
+function toggleFinal(el){el.classList.toggle('done');save();}
+function toggleDay(h){const b=h.nextElementSibling;h.classList.toggle('open');b.classList.toggle('open');save();}
+function switchWeek(n){
+  document.querySelectorAll('.week-tab').forEach((t,i)=>t.classList.toggle('active',i===n-1));
+  document.querySelectorAll('.week-panel').forEach((p,i)=>p.classList.toggle('active',i===n-1));
+}
+function resetAll(){
+  if(!confirm('Reset all progress?'))return;
+  document.querySelectorAll('.task.done,.final-item.done').forEach(e=>e.classList.remove('done'));
+  try{localStorage.removeItem(KEY);}catch(e){}
+  updateAll();
+}
+
+// ── PROGRESS UPDATE ──────────────────────────────────────────────────
+function updateAll(){
+  let tot=0,ta=0,pi=0,pa=0,ud=0,ua=0;
+  for(let w=1;w<=4;w++){
+    const panel=document.getElementById('panel'+w);
+    const piT=panel.querySelectorAll('.pi-task'),piD=panel.querySelectorAll('.pi-task.done');
+    const udT=panel.querySelectorAll('.udemy-task'),udD=panel.querySelectorAll('.udemy-task.done');
+    const otT=panel.querySelectorAll('.task:not(.pi-task):not(.udemy-task)'),otD=panel.querySelectorAll('.task:not(.pi-task):not(.udemy-task).done');
+    const wD=piD.length+udD.length+otD.length,wA=piT.length+udT.length+otT.length;
+    pi+=piD.length;pa+=piT.length;ud+=udD.length;ua+=udT.length;tot+=wD;ta+=wA;
+    const tp=document.getElementById('tab'+w+'p');if(tp)tp.textContent=wD+'/'+wA;
+    const wp=document.getElementById('w'+w+'pistat');if(wp)wp.textContent=piD.length+'/'+piT.length+' Pi';
+    const wu=document.getElementById('w'+w+'ustat');if(wu)wu.textContent=udD.length+'/'+udT.length+' Udemy';
+    updatePips(panel,w);
+  }
+  const pct=ta>0?Math.round(tot/ta*100):0;
+  document.getElementById('opPct').textContent=pct+'%';
+  document.getElementById('opPiFill').style.width=pa>0?(pi/pa*100)+'%':'0%';
+  document.getElementById('opUdemyFill').style.width=ua>0?(ud/ua*100)+'%':'0%';
+  document.getElementById('opPiNum').textContent=pi+'/'+pa;
+  document.getElementById('opUdemyNum').textContent=ud+'/'+ua;
+  document.getElementById('hPiFill').style.width=pa>0?(pi/pa*100)+'%':'0%';
+  document.getElementById('hUdemyFill').style.width=ua>0?(ud/ua*100)+'%':'0%';
+  document.getElementById('hDone').textContent=tot;
+  document.getElementById('hTotal').textContent=ta;
+}
+
+function updatePips(panel,w){
+  ['mon','tue','wed','thu','fri','wknd'].forEach(day=>{
+    const el=document.getElementById('pips-w'+w+'-'+day);
+    if(!el)return;
+    const card=el.closest('.day-card');if(!card)return;
+    const tasks=card.querySelectorAll('.task'),done=card.querySelectorAll('.task.done');
+    el.innerHTML='';
+    tasks.forEach((_,i)=>{const p=document.createElement('div');p.className='pip'+(i<done.length?' filled':'');el.appendChild(p);});
+  });
+}
+
+// ── REMINDER SETTINGS ────────────────────────────────────────────────
+const RS_KEY = 'ai_sec_reminder_v1';
+
+function loadReminderSettings(){
+  try {
+    const s = JSON.parse(localStorage.getItem(RS_KEY)) || {};
+    const enabled = s.enabled !== false; // default ON
+    const time = s.time || '19:00';
+    document.getElementById('rsTimeInput').value = time;
+    const toggle = document.getElementById('rsToggle');
+    if(enabled) toggle.classList.add('on');
+    else toggle.classList.remove('on');
+  } catch(e){}
+}
+
+function saveReminderTime(){
+  try {
+    const s = JSON.parse(localStorage.getItem(RS_KEY)) || {};
+    s.time = document.getElementById('rsTimeInput').value;
+    localStorage.setItem(RS_KEY, JSON.stringify(s));
+  } catch(e){}
+}
+
+function toggleReminder(){
+  try {
+    const s = JSON.parse(localStorage.getItem(RS_KEY)) || {};
+    s.enabled = !document.getElementById('rsToggle').classList.contains('on');
+    localStorage.setItem(RS_KEY, JSON.stringify(s));
+    const toggle = document.getElementById('rsToggle');
+    if(s.enabled) toggle.classList.add('on');
+    else toggle.classList.remove('on');
+  } catch(e){}
+}
+
+// ── CHECK-IN BANNER LOGIC ────────────────────────────────────────────
+function getTodayDayKey(){
+  const d = new Date().getDay(); // 0=Sun,1=Mon...6=Sat
+  if(d===0||d===6) return 'wknd';
+  return ['','mon','tue','wed','thu','fri'][d];
+}
+
+function getWeekNumber(){
+  // Simple: uses stored week preference, defaults to 1
+  try {
+    const s = JSON.parse(localStorage.getItem(RS_KEY)) || {};
+    return s.currentWeek || 1;
+  } catch(e){ return 1; }
+}
+
+function getTodayTasks(weekNum, dayKey){
+  // Find the day card matching today in the given week panel
+  const panel = document.getElementById('panel'+weekNum);
+  if(!panel) return [];
+  const headers = panel.querySelectorAll('.day-header');
+  let todayCard = null;
+  headers.forEach(h => {
+    const badge = h.querySelector('.day-badge');
+    if(!badge) return;
+    const badgeClass = badge.className;
+    if(dayKey==='mon' && badgeClass.includes('badge-mon')) todayCard = h.closest('.day-card');
+    if(dayKey==='tue' && badgeClass.includes('badge-tue')) todayCard = h.closest('.day-card');
+    if(dayKey==='wed' && badgeClass.includes('badge-wed')) todayCard = h.closest('.day-card');
+    if(dayKey==='thu' && badgeClass.includes('badge-thu')) todayCard = h.closest('.day-card');
+    if(dayKey==='fri' && badgeClass.includes('badge-fri')) todayCard = h.closest('.day-card');
+    if(dayKey==='wknd' && badgeClass.includes('badge-wknd')) todayCard = h.closest('.day-card');
+  });
+  if(!todayCard) return [];
+  return [...todayCard.querySelectorAll('.task')].map(t => ({
+    text: t.querySelector('.task-text')?.textContent?.trim()?.substring(0,60) || '',
+    done: t.classList.contains('done'),
+    isUdemy: t.classList.contains('udemy-task')
+  }));
+}
+
+function shouldShowCheckin(){
+  try {
+    const s = JSON.parse(localStorage.getItem(RS_KEY)) || {};
+    if(s.enabled === false) return false;
+    const reminderTime = s.time || '19:00';
+    const [rh, rm] = reminderTime.split(':').map(Number);
+    const now = new Date();
+    const ch = now.getHours(), cm = now.getMinutes();
+    const nowMins = ch*60+cm;
+    const remMins = rh*60+rm;
+    // Show within 90 minute window of reminder time
+    const inWindow = nowMins >= remMins && nowMins <= remMins+90;
+    // Don't show if already dismissed today
+    const lastDismiss = s.lastDismiss;
+    const todayStr = new Date().toDateString();
+    if(lastDismiss === todayStr) return false;
+    return inWindow;
+  } catch(e){ return false; }
+}
+
+function buildCheckinContent(){
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Time to grind';
+  document.getElementById('checkinGreeting').innerHTML = `${greeting}, <em>Fame</em>`;
+
+  const dayKey = getTodayDayKey();
+  const dayNames = {mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday',wknd:'Weekend'};
+  const timeLabel = h < 12 ? 'Morning Check-In' : h < 17 ? 'Afternoon Check-In' : 'Evening Check-In';
+  document.getElementById('checkinTimeLabel').textContent = timeLabel;
+  document.getElementById('checkinSubtitle').textContent = `${dayNames[dayKey]} · Week ${getWeekNumber()}`;
+
+  const weekNum = getWeekNumber();
+  const tasks = getTodayTasks(weekNum, dayKey);
+  const doneCt = tasks.filter(t=>t.done).length;
+
+  document.getElementById('csDayDone').textContent = doneCt;
+  document.getElementById('csDayTotal').textContent = tasks.length;
+
+  // Week pct
+  const panel = document.getElementById('panel'+weekNum);
+  if(panel){
+    const wAll = panel.querySelectorAll('.task').length;
+    const wDone = panel.querySelectorAll('.task.done').length;
+    document.getElementById('csWeekPct').textContent = wAll>0?Math.round(wDone/wAll*100)+'%':'0%';
+  }
+
+  // Build task list (max 5)
+  const list = document.getElementById('checkinTaskList');
+  list.innerHTML = '';
+  const show = tasks.slice(0,5);
+  if(show.length === 0){
+    list.innerHTML = '<div style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--muted2);padding:8px 0;">No tasks found for today — check your week setting below.</div>';
+    return;
+  }
+  show.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'checkin-task' + (t.done?' ct-done':'');
+    const tagColor = t.isUdemy ? 'background:rgba(168,85,247,.1);color:#a855f7;border:1px solid rgba(168,85,247,.2)' : 'background:rgba(0,232,122,.1);color:#00e87a;border:1px solid rgba(0,232,122,.2)';
+    div.innerHTML = `
+      <div class="ct-check"><span class="ct-check-mark">✓</span></div>
+      <div class="ct-text">${t.text}${t.text.length>=60?'…':''}</div>
+      <span class="ct-tag" style="${tagColor}">${t.isUdemy?'UDEMY':'PI'}</span>`;
+    list.appendChild(div);
+  });
+  if(tasks.length > 5){
+    const more = document.createElement('div');
+    more.style.cssText='font-family:JetBrains Mono,monospace;font-size:10px;color:var(--muted2);padding:6px 0 0;text-align:center;';
+    more.textContent = `+${tasks.length-5} more tasks in the tracker`;
+    list.appendChild(more);
+  }
+}
+
+function showCheckin(){
+  buildCheckinContent();
+  const overlay = document.getElementById('checkinOverlay');
+  overlay.classList.add('show');
+}
+
+function dismissCheckin(){
+  document.getElementById('checkinOverlay').classList.remove('show');
+  try {
+    const s = JSON.parse(localStorage.getItem(RS_KEY)) || {};
+    s.lastDismiss = new Date().toDateString();
+    localStorage.setItem(RS_KEY, JSON.stringify(s));
+  } catch(e){}
+}
+
+function goToToday(){
+  dismissCheckin();
+  const weekNum = getWeekNumber();
+  switchWeek(weekNum);
+  // Scroll to top of week panel
+  setTimeout(()=>{
+    const panel = document.getElementById('panel'+weekNum);
+    if(panel) panel.scrollIntoView({behavior:'smooth',block:'start'});
+  }, 100);
+}
+
+// ── SET CURRENT WEEK (auto-detect or manual) ─────────────────────────
+function setCurrentWeek(w){
+  try{
+    const s=JSON.parse(localStorage.getItem(RS_KEY))||{};
+    s.currentWeek=w;
+    localStorage.setItem(RS_KEY,JSON.stringify(s));
+  }catch(e){}
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+load();
+updateAll();
+loadReminderSettings();
+
+// Auto-detect current week based on progress
+(function detectWeek(){
+  let bestWeek = 1;
+  for(let w=1;w<=4;w++){
+    const panel=document.getElementById('panel'+w);
+    const done=panel.querySelectorAll('.task.done').length;
+    const all=panel.querySelectorAll('.task').length;
+    if(done > 0 && done < all) { bestWeek=w; break; }
+    if(done===all && all>0) bestWeek=Math.min(w+1,4);
+  }
+  setCurrentWeek(bestWeek);
+})();
+
+// Check if we should show the banner (within reminder window)
+setTimeout(()=>{
+  if(shouldShowCheckin()) showCheckin();
+}, 800); // slight delay so page renders first
+</script>
